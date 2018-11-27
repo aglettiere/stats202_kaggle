@@ -1,0 +1,50 @@
+---
+title: "KaggleCompetition"
+author: "Allison Lettiere"
+date: "11/25/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r warning = FALSE}
+##Train
+trainingData = read.csv("train_data.csv", header = TRUE)
+ 
+trainingDataFrame = data.frame(bp = trainingData$BP, smoking = trainingData$smoking, cholesterol = trainingData$cholesterol, behavior = trainingData$behavior, bmi = trainingData$BMI, alcohol = trainingData$alcohol, age = trainingData$age, old_assay = trainingData$old_assay, gold_standard = trainingData$gold_standard, assay = trainingData$assay, statuses = trainingData$Status)
+
+fit.4=lm(statuses~ poly(bp,2) + poly(smoking,1) + poly(cholesterol,2) + poly(behavior,1) + poly(bmi,2) + poly(alcohol,1) + poly(age,2) + poly(old_assay,1) + poly(gold_standard,2) + poly(assay,1), data = trainingDataFrame)
+
+fit.5=lm(statuses~ poly(bp,2) + poly(smoking,2) + poly(cholesterol,1) + poly(behavior,1) + poly(bmi,2) + poly(alcohol,2) + poly(age,2) + poly(old_assay,4) + poly(gold_standard,2) + poly(assay,3), data = trainingDataFrame)
+
+anova(fit.4, fit.5)
+
+##Test
+testingData = read.csv("test_data.csv", header = TRUE)
+
+testingDataFrame = data.frame(bp = testingData$BP, smoking = testingData$smoking, cholesterol = testingData$cholesterol, behavior = testingData$behavior, bmi = testingData$BMI, alcohol = testingData$alcohol, age = testingData$age, old_assay = testingData$old_assay, gold_standard = testingData$gold_standard, assay = testingData$assay)
+
+idTest = testingData$Id
+
+predictions = data.frame(matrix(nrow = 200, ncol = 2))
+x = c("Id", "Category")
+colnames(predictions) = x
+
+prediction = predict(fit.5, testingDataFrame)
+
+for (i in 1:200){
+  predictions[i, 1] = idTest[i]
+  
+  if(prediction[i] <= 0.5){
+    predictions[i, 2] = FALSE
+  }else if(prediction[i] > 0.5){
+    predictions[i, 2] = TRUE
+  }
+}
+
+write.csv(predictions, "predictions.csv", quote = FALSE, row.names = FALSE)
+```
+
